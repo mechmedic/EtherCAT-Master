@@ -348,6 +348,21 @@ int8_t EthercatMaster::SdoWrite(SDO_data& pack)
 
 int EthercatMaster::MapDefaultPdos()
 {
+  // PDO mapping consists of
+  // 1. 'ec_pdo_entry_info_t' which specifies index/subindex/size of
+  //     an object (PDO Entry) that will be mapped to PDO
+  // 2. 'ec_pdo_info_t' which specifies index in a slave's object dictionary
+  //    (PDO index) that the entry information will be stored.
+  //    {PDOidx, number of PDO entry, pointer to pdo entries}
+  // 3. 'ec_sync_info_t', sync manager configuration information
+  //     index / direction / number of PDOs to be managed / PDO info / watchdog mode
+
+  //     SyncManagers ensure a consistent and secure data exchange between the
+  //     EtherCAT master and the local application of a slave device.
+  //     The EtherCAT master configures the SyncManager of each slave device;
+  //     it determines the direction and method of communication.
+  //     A data buffer is available for data exchange.
+
   // CKim - Code here is specific for MISS-Robot V3 which has 5 EPOS4 as a slaves, 
   // with absolute encoder enabled for motor 2 and 3
 
@@ -382,12 +397,17 @@ int EthercatMaster::MapDefaultPdos()
     // CKim - Sync manager configuration of the EPOS4. 0,1 is reserved for SDO communications
     // EC_WD_ENABLE means that the sync manager of the slave will throw error
     // if it does not synchronize within certain interval
+    // {0xff} at the end is used tell the end of 'ec_sync_info_t' list
     ec_sync_info_t maxon_syncs[5] = { { 0, EC_DIR_OUTPUT, 0, NULL, EC_WD_DISABLE },
                                       { 1, EC_DIR_INPUT, 0, NULL, EC_WD_DISABLE },
                                       { 2, EC_DIR_OUTPUT, 1, &maxon_RxPdos, EC_WD_ENABLE },
                                       { 3, EC_DIR_INPUT, 1, &maxon_TxPdos, EC_WD_DISABLE },
                                       { 0xff } };
 
+    // CKim - Connect the configured Sync manager to corresponding slaves
+    // ecrt_slave_config_pdos (slave configuration, number of sync manager,
+    // array of sync manager configuration):
+    // EC_END tells to read until {oxff} in 'ec_sync_info_t' array
     if (ecrt_slave_config_pdos(slaves_[i].slave_config_, EC_END, maxon_syncs))
     {
       std::cerr << "[EthercatMaster] Slave " << i << " PDO configuration failed... \n";
@@ -395,6 +415,15 @@ int EthercatMaster::MapDefaultPdos()
     }
 
     // CKim - Registers a PDO entry for process data exchange in a domain. Obtain offsets
+    // CKim 5. - Register PDO configuration (sync manager configuration)
+    // of each slave to Process Data Domain. Only the registered entry will be
+    // communicated by master.
+    // ecrt_slave_config_reg_pdo_entry()
+    // Returns offset (in bytes) of the PDO entry's process data from the beginning of the
+    // domain data, which is used for read/write
+    // offset = ecrt_slave_config_reg_pdo_entry
+    // (slave configuration, index, subindex, domain)
+
     this->slaves_[i].offset_.control_word =
         ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_CONTROL_WORD, m_master_domain, NULL);
     this->slaves_[i].offset_.target_vel =
@@ -448,7 +477,8 @@ void EthercatMaster::ConfigDcSyncDefault()
   // Code here is specific for EPOS4. Assign activate parameter for  EPOS4 is 0x300
   // 0x300 for Elmo | and same for EasyCAT
   // Assign activate parameters specified in slaves ESI file
-
+  // https://infosys.beckhoff.com/english.php?content=../content/1033/ethercatsystem/2469118347.html&id=
+  // https://infosys.beckhoff.com/english.php?content=../content/1033/ethercatsystem/2469122443.html&id=
   for (int i = 0; i < g_kNumberOfServoDrivers; i++)
   {
     ecrt_slave_config_dc(slaves_[i].slave_config_, 0X0300, PERIOD_NS, slaves_[i].kSync0_shift_, 0, 0);

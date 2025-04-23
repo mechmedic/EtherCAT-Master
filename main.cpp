@@ -479,23 +479,6 @@ void EthercatLifeCycle::StartPdoExchange(void* instance)
   pthread_exit(NULL);
 }  // StartPdoExchange end
 
-int EthercatLifeCycle::PublishAllData()
-{
-  received_data_.header.stamp = this->now();
-  received_data_publisher_->publish(received_data_);
-  sent_data_.header.stamp  = this->now();
-  sent_data_publisher_->publish(sent_data_);
-  hapticInput_.header.stamp = this->now();
-  haptic_cmd_publisher_->publish(hapticInput_);
-  // microsurgery_robot_cmd_publisher_->publish(microsurgery_robot_cmd_);
-}
-
-int EthercatLifeCycle::PublishReceivedData()
-{
-  received_data_.header.stamp = this->now();
-  received_data_publisher_->publish(received_data_);
-}
-
 // --------------------------------------------------------------------------------------------
 
 void EthercatLifeCycle::ReadFromSlaves()

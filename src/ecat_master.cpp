@@ -19,13 +19,13 @@ EthercatMaster::~EthercatMaster()
 int EthercatMaster::OpenEthercatMaster()
 {
   std::cout << "[EthercatMaster] Trying to open EtherCAT master...\n";
-  fd = std::system("ls /dev | grep EtherCAT* > /dev/null");
+  fd = std::system("ls /dev | grep EtherCAT > /dev/null");
   if (fd)
   {
     std::cout << "[EthercatMaster] Opening EtherCAT master...\n";
     std::system("sudo ethercatctl start");
     usleep(2e6);
-    fd = std::system("ls /dev | grep EtherCAT* > /dev/null");
+    fd = std::system("ls /dev | grep EtherCAT > /dev/null");
     if (fd)
     {
       std::cerr << "[EthercatMaster] Error : EtherCAT device not found.\n";
@@ -42,6 +42,10 @@ int EthercatMaster::OpenEthercatMaster()
 
 int EthercatMaster::ConfigureMaster(int idx)
 {
+  // CKim - 1. Request master
+  // To access IgH EtherCAT master inside your application,
+  // one must first request the master.
+  // 'ecrt_request_master(index)'. Returns pointer to 'ec_master_t'
   std::cout << "[EthercatMaster] Requesting EtherCAT master...\n";
   if (!m_master)
   {
@@ -53,6 +57,11 @@ int EthercatMaster::ConfigureMaster(int idx)
     }
   }
 
+  // CKim - 2. Create a Process Data Domain
+  // Image of the process data objects (PDO) that will be
+  // exchanged through EtherCAT communication are managed by
+  // 'Process Data Domain'.
+  // 'ecrt_master_create_domain'. Returns pointer to ec_domain_t
   m_master_domain = ecrt_master_create_domain(m_master);
   if (!m_master_domain)
   {

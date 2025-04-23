@@ -66,7 +66,6 @@ public:
 
   /**
    * @brief Requests master instance and creates a domain for a master.
-   * @note  Keep in mind that created master and domain are global variables.
    * @param idx Index of the master in case of multiple masters
    * @return 0 if succesful otherwise -1.
    */
@@ -434,25 +433,3 @@ private:
   struct timespec m_sync_timer;
 };
 }  // namespace EthercatCommunication
-
-
-   /**
-   * @brief Maps default SDOs which can be found @see SdoRequest struct.
-   * @return 0 if successfull, otherwise -1.
-   */
-  // int MapDefaultSdos();
-
-  // /**
-  //  * @brief Writes SDO in real-time context.
-  //  *
-  //  * @param req
-  //  * @param data
-  //  */
-  // void WriteSDO(ec_sdo_request_t* req, int32_t data, int size);
-  // /**
-  //  * @brief Reads SDO in real-time context by creating read request.
-  //  *
-  //  * @param req
-  //  */
-  // uint16_t ReadSDO(ec_sdo_request_t* req, uint16_t& status_word);
-

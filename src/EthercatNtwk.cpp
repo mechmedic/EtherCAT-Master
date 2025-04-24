@@ -2,11 +2,6 @@
 
 using namespace EthercatCommunication;
 
-//****************************************************************************************/
-///// Extern global variable declaration.
-//uint32_t g_sync_ref_counter = 0;
-///****************************************************************************************
-
 EthercatNtwk::EthercatNtwk()
 {
 }

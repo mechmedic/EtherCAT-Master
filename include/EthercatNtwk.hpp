@@ -41,6 +41,7 @@
 #pragma once
 /******************************************************************************/
 #include "ecat_globals.hpp"
+#include <ecrt.h>
 /******************************************************************************/
 /// Forward declaration of EthercatSlave class.
 class EthercatSlave;
@@ -53,6 +54,41 @@ class EthercatSlave;
 /*****************************************************************************/
 namespace EthercatCommunication
 {
+
+/// CKim - SDO_data Structure holding all data needed to send/receive an SDO object.
+typedef struct {
+    uint16_t slave_position;    // Position based addressing.
+    uint16_t index;		        // Index in Object dictionary
+    uint8_t  sub_index;	        // Subindex in Object dictionary
+    uint32_t data ;             // Actual data to sent/receive
+    size_t   data_sz;	        // Size
+    size_t   result_sz;         // Resulted data size
+    uint32_t err_code;	        // Error code
+} SDO_data;
+
+/// EtherCAT SDO request structure for configuration phase.
+typedef struct
+{
+    ec_sdo_request_t  * com_status;
+    ec_sdo_request_t  * target_pos ;
+    ec_sdo_request_t  * target_vel ;
+    ec_sdo_request_t  * target_tor ;
+    ec_sdo_request_t  * max_tor ;
+    ec_sdo_request_t  * control_word ;
+    ec_sdo_request_t  * op_mode ;
+    ec_sdo_request_t  * vel_offset ;
+    ec_sdo_request_t  * tor_offset ;
+
+    ec_sdo_request_t  * actual_pos ;
+    ec_sdo_request_t  * actual_vel ;
+    ec_sdo_request_t  * actual_cur ;
+    ec_sdo_request_t  * actual_tor ;
+    ec_sdo_request_t  * status_word ;
+    ec_sdo_request_t  * op_mode_display ;
+    ec_sdo_request_t  * left_limit_switch_val ;
+    ec_sdo_request_t  * right_limit_switch_val ;
+    ec_sdo_request_t  * emergency_switch_val ;
+}SdoRequest;
 
 class EthercatNtwk
 {

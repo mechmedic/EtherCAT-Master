@@ -38,6 +38,7 @@
 #pragma once
 
 #include "ecat_globals.hpp"
+#include <ecrt.h>
 
 /******************************************************************************
  *  \class   EthercatSlave
@@ -45,6 +46,47 @@
  *******************************************************************************/
 namespace EthercatCommunication
 {
+
+/// offset for PDO entries to register PDOs.
+typedef struct
+{
+    uint32_t target_pos ;
+    uint32_t target_vel ;
+    uint32_t target_tor ;
+    uint32_t torque_offset;
+    uint32_t max_tor  ;
+    uint32_t control_word ;
+    uint32_t op_mode ;
+    uint32_t profile_acc ;
+    uint32_t profile_dec ;
+    uint32_t quick_stop_dec ;
+    uint32_t profile_vel ;
+
+    uint32_t actual_pos ;
+    uint32_t pos_fol_err ;
+    uint32_t actual_vel ;
+    uint32_t actual_cur ;
+    uint32_t actual_tor ;
+    uint32_t status_word ;
+    uint32_t op_mode_display ;
+    uint32_t error_code ;
+    uint32_t extra_status_reg ;
+    uint32_t digital_input;
+    uint32_t abs_encoder_pos;
+
+    // DY
+    uint32_t analog_input_1;
+    uint32_t analog_input_2;
+    uint32_t analog_output_1;
+    uint32_t analog_output_2;
+
+    uint32_t r_limit_switch;
+    uint32_t l_limit_switch;
+    uint32_t emergency_switch;
+    uint32_t pressure_sensor;
+} OffsetPDO ;
+
+
 class EthercatSlave
 {
 public:
@@ -96,9 +138,6 @@ public:
 
   /// Offset for PDO entries to assign pdo registers.
   OffsetPDO offset_;
-
-  // /// Received data from servo drivers.
-  // ReceivedData data_;
 
 };  // EthercatSlave class
 }

@@ -288,10 +288,6 @@ int main()
         }
 
         // -----------------------
-        // CKim - Sync Master clock
-        epos_ntwk->SetMasterApplicationTime(wakeup_time);
-
-        // -----------------------
         // CKim - Periodically check master/domain/slave state
         if (status_check_counter) {   status_check_counter--; }
         else
@@ -329,6 +325,11 @@ int main()
         epos_ntwk->WriteToSlaves();
 
         // -----------------------
+        // CKim - Synchronize clock. I need to study more about this
+
+        // CKim - Sync Master clock
+        epos_ntwk->SetMasterApplicationTime(wakeup_time);
+
         // CKim - Synchronize reference clock of master and slave.
         if (sync_ref_counter) {  sync_ref_counter--;  }
         else

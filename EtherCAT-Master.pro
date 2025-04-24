@@ -7,8 +7,7 @@ SOURCES += \
         main.cpp \
         src/EposNtwk.cpp \
         src/EthercatNtwk.cpp \
-        src/EthercatSlave.cpp \
-        src/timing.cpp
+        src/EthercatSlave.cpp
 
 DISTFILES += \
     README.md
@@ -17,10 +16,9 @@ HEADERS += \
     include/EposNtwk.hpp \
     include/EthercatNtwk.hpp \
     include/EthercatSlave.hpp \
-    include/ecat_definitions.hpp \
     include/ecat_globals.hpp \
-    include/object_dictionary.hpp \
-    include/timing.hpp
+    include/epos_definitions.h \
+    include/object_dictionary.hpp
 
 INCLUDEPATH += include
 

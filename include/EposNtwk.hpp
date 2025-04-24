@@ -35,6 +35,7 @@
 #pragma once
 /******************************************************************************/
 #include <EthercatNtwk.hpp>
+#include <epos_definitions.h>
 /******************************************************************************/
 namespace EthercatCommunication
 {

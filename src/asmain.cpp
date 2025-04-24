@@ -219,47 +219,7 @@
 
 //void cyclic_task()
 //{
-//    // CKim - receive process data
-//    ecrt_master_receive(master);
-//    ecrt_domain_process(domain1);
 
-////     // check process data state (optional)
-////     check_domain1_state();
-
-//    // CKim - Read and write process data
-//    if (counter) {
-//        counter--;
-//    }
-//    else { // do this at 1 Hz
-//        counter = 1000;
-
-//        // check for master state (optional)
-//        //check_master_state();
-//        // check for slave configuration state(s) (optional)
-//        //check_slave_config_states();
-
-
-//        // CKim - Update new data to write
-//        buzz = !buzz;
-//        SegData++;
-
-//        // CKim - Print received data
-//        printf("Temperature : %.2f\t Pot : %d\t Switch : %d\t SegData : %d\n", TempData,PotData,SwitchData, SegData);
-//    }
-
-//    // read process data
-//    TempData = EC_READ_REAL(domain1_pd + offsetTemperature);
-//    PotData = EC_READ_U16(domain1_pd + offsetPot);
-//    SwitchData = EC_READ_U8(domain1_pd + offsetSwitch);
-
-//    // write process data
-//    EC_WRITE_U8(domain1_pd + offsetAlarm, buzz ? 0xFF : 0x00);
-//    //EC_WRITE_U8(domain1_pd + offsetAlarm, 127);
-//    EC_WRITE_U8(domain1_pd + offsetSegment, SegData);
-
-//    // CKim - send process data
-//    ecrt_domain_queue(domain1);
-//    ecrt_master_send(master);
 //}
 
 ///****************************************************************************/

@@ -112,28 +112,28 @@ inline struct timespec timespec_add(struct timespec time1, struct timespec time2
     return result;
 }
 
-typedef struct
-{
-    float left_x_axis_;
-    float left_y_axis_;
-    float right_x_axis_;
-    float right_y_axis_;
-    float left_t_axis_ ;
-    float right_t_axis_ ; 
-    uint8_t blue_button_;
-    uint8_t green_button_;
-    uint8_t red_button_;
-    uint8_t yellow_button_;
-    uint8_t left_r_button_;
-    uint8_t left_l_button_;
-    uint8_t left_u_button_;
-    uint8_t left_d_button_ ;
-    uint8_t left_rb_button_ ;
-    uint8_t right_rb_button_ ;
-    uint8_t left_start_button_ ;
-    uint8_t right_start_button_ ; 
-    uint8_t xbox_button_;
-} Controller;
+//typedef struct
+//{
+//    float left_x_axis_;
+//    float left_y_axis_;
+//    float right_x_axis_;
+//    float right_y_axis_;
+//    float left_t_axis_ ;
+//    float right_t_axis_ ;
+//    uint8_t blue_button_;
+//    uint8_t green_button_;
+//    uint8_t red_button_;
+//    uint8_t yellow_button_;
+//    uint8_t left_r_button_;
+//    uint8_t left_l_button_;
+//    uint8_t left_u_button_;
+//    uint8_t left_d_button_ ;
+//    uint8_t left_rb_button_ ;
+//    uint8_t right_rb_button_ ;
+//    uint8_t left_start_button_ ;
+//    uint8_t right_start_button_ ;
+//    uint8_t xbox_button_;
+//} Controller;
 
 
  /// Motor operation modes
@@ -275,40 +275,6 @@ typedef struct
     uint32_t pressure_sensor; 
 } OffsetPDO ;
 
-/// Received feedback data from slaves
-typedef struct
-{
-    int32_t   target_pos ;
-    int32_t   target_vel ;
-    int16_t   target_tor ;
-    int16_t   max_tor ;
-    uint16_t  control_word ;
-    OpMode    op_mode ;
-    int32_t   vel_offset ;
-    int16_t   tor_offset ;
-
-    int32_t  actual_pos ;
-    int32_t  actual_vel ;
-    int16_t  actual_cur ;
-    int16_t  actual_tor ;
-    uint16_t status_word ;
-    uint16_t error_code;
-    
-    int8_t   op_mode_display ;
-    uint8_t  left_limit_switch_val ;
-    uint8_t  right_limit_switch_val ;
-    uint8_t  s_emergency_switch_val;
-    uint32_t digital_input;
-    
-    // DY
-    uint8_t  p_emergency_switch_val;
-    int32_t  right_x_axis;
-    int32_t  left_x_axis;
-    uint8_t  com_status;
-    int16_t  analog_input_1;
-    int16_t  analog_input_2;
-    
-}ReceivedData;
 
 /// CKim - SDO_data Structure holding all data needed to send/receive an SDO object.
 typedef struct {

@@ -1,4 +1,6 @@
-#include "ecat_slave.hpp"
+#include "EthercatSlave.hpp"
+
+using namespace EthercatCommunication;
 
 EthercatSlave::EthercatSlave()  // : variable {assigned value} for initialization.
 {

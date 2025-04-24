@@ -5,19 +5,20 @@ CONFIG -= qt
 
 SOURCES += \
         main.cpp \
-        src/asmain.cpp \
-        src/ecat_master.cpp \
-        src/ecat_slave.cpp \
+        src/EposNtwk.cpp \
+        src/EthercatNtwk.cpp \
+        src/EthercatSlave.cpp \
         src/timing.cpp
 
 DISTFILES += \
     README.md
 
 HEADERS += \
+    include/EposNtwk.hpp \
+    include/EthercatNtwk.hpp \
+    include/EthercatSlave.hpp \
     include/ecat_definitions.hpp \
     include/ecat_globals.hpp \
-    include/ecat_master.hpp \
-    include/ecat_slave.hpp \
     include/object_dictionary.hpp \
     include/timing.hpp
 

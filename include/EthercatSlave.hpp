@@ -43,6 +43,8 @@
  *  \class   EthercatSlave
  *  \brief   Contains EtherCAT slave parameters for configuration.
  *******************************************************************************/
+namespace EthercatCommunication
+{
 class EthercatSlave
 {
 public:
@@ -99,3 +101,4 @@ public:
   // ReceivedData data_;
 
 };  // EthercatSlave class
+}

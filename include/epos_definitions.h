@@ -1,6 +1,6 @@
 /*****************************************************************************
  * \file  epos_definitions.hpp
- * \brief Header file for all structures for POS slaves
+ * \brief Header file for all structures for EPOS slaves
  *
  *******************************************************************************/
 #pragma once

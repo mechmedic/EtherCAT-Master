@@ -263,9 +263,8 @@ protected:
 
   EthercatSlave slaves_[NUM_OF_SLAVES];
 
-  // ---------------------------------------------------------------
-  // Functions belows are application specific
-
+// -------------------------------------------------------
+// Virtual functions to be overridden
 public:
   /**
    * @brief Maps PDOs for the application.

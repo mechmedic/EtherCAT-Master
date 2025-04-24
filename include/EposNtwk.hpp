@@ -36,12 +36,16 @@
 /******************************************************************************/
 #include <EthercatNtwk.hpp>
 #include <epos_definitions.h>
+
+/// Total Number of connected slaves
+const uint32_t  g_kNumberOfSlaves = 7 ;
+/// Number of EPOS slaves
+const uint32_t  g_kNumberOfServoDrivers = 7 ;
 /******************************************************************************/
 namespace EthercatCommunication
 {
 
-
-// CKim - Struct for received feedback data from slaves
+// CKim - Struct for storing data of EPOS
 typedef struct
 {
     int32_t   target_pos ;
@@ -66,7 +70,6 @@ typedef struct
     uint8_t  s_emergency_switch_val;
     uint32_t digital_input;
 
-    // DY
     uint8_t  p_emergency_switch_val;
     int32_t  right_x_axis;
     int32_t  left_x_axis;
@@ -74,7 +77,46 @@ typedef struct
     int16_t  analog_input_1;
     int16_t  analog_input_2;
 
-}EposPdoData;
+}EposData;
+
+// CKim - Struct for storing offset for registered PDO entries
+// Used when accessing data from PDO domain
+typedef struct
+{
+    uint32_t target_pos ;
+    uint32_t target_vel ;
+    uint32_t target_tor ;
+    uint32_t torque_offset;
+    uint32_t max_tor  ;
+    uint32_t control_word ;
+    uint32_t op_mode ;
+    uint32_t profile_acc ;
+    uint32_t profile_dec ;
+    uint32_t quick_stop_dec ;
+    uint32_t profile_vel ;
+
+    uint32_t actual_pos ;
+    uint32_t pos_fol_err ;
+    uint32_t actual_vel ;
+    uint32_t actual_cur ;
+    uint32_t actual_tor ;
+    uint32_t status_word ;
+    uint32_t op_mode_display ;
+    uint32_t error_code ;
+    uint32_t extra_status_reg ;
+    uint32_t digital_input;
+    uint32_t abs_encoder_pos;
+
+    uint32_t analog_input_1;
+    uint32_t analog_input_2;
+    uint32_t analog_output_1;
+    uint32_t analog_output_2;
+
+    uint32_t r_limit_switch;
+    uint32_t l_limit_switch;
+    uint32_t emergency_switch;
+    uint32_t pressure_sensor;
+}EposPdoOffset ;
 
 
 class EposNtwk : public EthercatNtwk
@@ -83,12 +125,17 @@ public:
   EposNtwk();
   ~EposNtwk();
 
-public:
-  EposPdoData m_PdoData[g_kNumberOfServoDrivers];
+  /// Data from PDO will be Offset for PDO entries to assign pdo registers.
+  EposData m_EposData[g_kNumberOfServoDrivers];
 
-  // ---------------------------------------------------------------
-  // CKim - Virtual functions.
+private:
+  /// Offset for PDO entries to assign pdo registers.
+  EposPdoOffset m_PdoOffset[g_kNumberOfServoDrivers];
 
+
+// ---------------------------------------------------------------
+// CKim - Virtual functions.
+// ---------------------------------------------------------------
 public:
   /**
    * @brief Maps PDOs for the application.
@@ -121,9 +168,9 @@ public:
   virtual void WriteToSlaves();
 
 
-  // ---------------------------------------------------------------
-  // CKim - Additional functions specific for EPOS4
-
+// ---------------------------------------------------------------
+// CKim - Additional functions specific for EPOS4
+// ---------------------------------------------------------------
   /**
    * @brief Get the Status Word from CiA402 slaves in specified index via SDO communication.
    * @param index slave index

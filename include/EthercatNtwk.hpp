@@ -41,11 +41,8 @@
 #pragma once
 /******************************************************************************/
 #include "ecat_globals.hpp"
-#include <ecrt.h>
-/******************************************************************************/
-/// Forward declaration of EthercatSlave class.
-class EthercatSlave;
 #include "EthercatSlave.hpp"
+#include <ecrt.h>
 /******************************************************************************/
 /// C++ Headers
 #include <iostream>
@@ -65,30 +62,6 @@ typedef struct {
     size_t   result_sz;         // Resulted data size
     uint32_t err_code;	        // Error code
 } SDO_data;
-
-/// EtherCAT SDO request structure for configuration phase.
-typedef struct
-{
-    ec_sdo_request_t  * com_status;
-    ec_sdo_request_t  * target_pos ;
-    ec_sdo_request_t  * target_vel ;
-    ec_sdo_request_t  * target_tor ;
-    ec_sdo_request_t  * max_tor ;
-    ec_sdo_request_t  * control_word ;
-    ec_sdo_request_t  * op_mode ;
-    ec_sdo_request_t  * vel_offset ;
-    ec_sdo_request_t  * tor_offset ;
-
-    ec_sdo_request_t  * actual_pos ;
-    ec_sdo_request_t  * actual_vel ;
-    ec_sdo_request_t  * actual_cur ;
-    ec_sdo_request_t  * actual_tor ;
-    ec_sdo_request_t  * status_word ;
-    ec_sdo_request_t  * op_mode_display ;
-    ec_sdo_request_t  * left_limit_switch_val ;
-    ec_sdo_request_t  * right_limit_switch_val ;
-    ec_sdo_request_t  * emergency_switch_val ;
-}SdoRequest;
 
 class EthercatNtwk
 {
@@ -166,10 +139,9 @@ public:
   
   /**
    * @brief Get the Number Of physically Connected Slaves to the bus.
-   *        And checks if specified NUM_OF_SLAVES is correct.
-   * @return 0 if NUM_OF_SLAVES setting is correct, otherwise -1.
+   * @return 0 if the Number is equal to m_NumberOfSlaves, -1 otherwise.
    */
-  int GetNumberOfConnectedSlaves();
+  int CheckNumberOfConnectedSlaves();
 
   /**
    * @brief Get the information of physically connected slaves to the master.
@@ -261,7 +233,8 @@ protected:
   ec_domain_state_t m_master_domain_state = {};  // EtherCAT master domain state
   struct timespec m_sync_timer;
 
-  EthercatSlave slaves_[NUM_OF_SLAVES];
+  std::vector<EthercatSlave> m_slaves;
+  int m_NumberOfSlaves = 0;
 
 // -------------------------------------------------------
 // Virtual functions to be overridden

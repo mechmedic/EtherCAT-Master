@@ -171,10 +171,10 @@ int EthercatNtwk::ActivateMaster()
 
 int EthercatNtwk::RegisterDomain()
 {
-  for (int i = 0; i < NUM_OF_SLAVES; i++)
+  for (int i = 0; i < m_NumberOfSlaves; i++)
   {
-    slaves_[i].slave_pdo_domain_ = ecrt_domain_data(m_master_domain);
-    if(!(slaves_[i].slave_pdo_domain_) )
+    m_slaves[i].slave_pdo_domain_ = ecrt_domain_data(m_master_domain);
+    if(!(m_slaves[i].slave_pdo_domain_) )
     {
         std::cerr << "[EthercatNtwk] Domain PDO registration error";
         return -1;
@@ -189,16 +189,16 @@ void EthercatNtwk::DeactivateMaster()
   ecrt_master_deactivate(m_master);
 }
 
-int EthercatNtwk::GetNumberOfConnectedSlaves()
+int EthercatNtwk::CheckNumberOfConnectedSlaves()
 {
   unsigned int number_of_slaves;
   usleep(1e6);
   ecrt_master_state(m_master, &m_master_state);
   number_of_slaves = m_master_state.slaves_responding;
-  if (NUM_OF_SLAVES != number_of_slaves)
+  if (number_of_slaves != m_NumberOfSlaves)
   {
     std::cerr << "[EthercatNtwk] Please enter correct number of slaves... \n"
-              << "Entered number of slave : " << NUM_OF_SLAVES << "\n"
+              << "Entered number of slave : " << m_NumberOfSlaves << "\n"
               << "Connected slaves        : " << number_of_slaves << "\n"; 
     return -1;
   }
@@ -212,12 +212,12 @@ void EthercatNtwk::GetSlaveInformation(int position, ec_slave_info_t& info)
 
 int EthercatNtwk::InitSlave(int i)
 {
-  ecrt_master_get_slave(m_master, i, &slaves_[i].slave_info_);
-  slaves_[i].slave_config_ = ecrt_master_slave_config(m_master,slaves_[i].slave_info_.alias,
-                                                                    slaves_[i].slave_info_.position,
-                                                                    slaves_[i].slave_info_.vendor_id,
-                                                                    slaves_[i].slave_info_.product_code); 
-  if(!slaves_[i].slave_config_) {
+  ecrt_master_get_slave(m_master, i, &m_slaves[i].slave_info_);
+  m_slaves[i].slave_config_ = ecrt_master_slave_config(m_master,m_slaves[i].slave_info_.alias,
+                                                                    m_slaves[i].slave_info_.position,
+                                                                    m_slaves[i].slave_info_.vendor_id,
+                                                                    m_slaves[i].slave_info_.product_code);
+  if(!m_slaves[i].slave_config_) {
       std::cerr << "[EthercatNtwk] Failed to  configure slave ! ";
       return -1;
   }
@@ -226,25 +226,25 @@ int EthercatNtwk::InitSlave(int i)
 
 void EthercatNtwk::CheckSlaveConfigurationState()
 {
-  for (int i = 0; i < NUM_OF_SLAVES; i++)
+  for (int i = 0; i < m_NumberOfSlaves; i++)
   {
-    //slaves_[i].CheckSlaveConfigState();
-    ecrt_slave_config_state(slaves_[i].slave_config_, &slaves_[i].slave_config_state_);
-    if (slaves_[i].slave_config_state_.al_state != 0x08)
+    //m_slaves[i].CheckSlaveConfigState();
+    ecrt_slave_config_state(m_slaves[i].slave_config_, &m_slaves[i].slave_config_state_);
+    if (m_slaves[i].slave_config_state_.al_state != 0x08)
     {
-      std::cout << "[EthercatNtwk] Slave "<<i<< " is not operational. AL state is :" << std::hex << slaves_[i].slave_config_state_.al_state << std::endl;
+      std::cout << "[EthercatNtwk] Slave "<<i<< " is not operational. AL state is :" << std::hex << m_slaves[i].slave_config_state_.al_state << std::endl;
     }
   }
 }
 
 void EthercatNtwk::ResetSlave(int i)
 {
-    slaves_[i].slave_pdo_domain_ = NULL;
-    slaves_[i].slave_config_ = NULL;
-    slaves_[i].slave_pdo_entry_info_ = NULL;
-    slaves_[i].slave_pdo_entry_reg_ = NULL;
-    slaves_[i].slave_pdo_info_ = NULL;
-    slaves_[i].slave_sync_info_ = NULL;    
+    m_slaves[i].slave_pdo_domain_ = NULL;
+    m_slaves[i].slave_config_ = NULL;
+    m_slaves[i].slave_pdo_entry_info_ = NULL;
+    m_slaves[i].slave_pdo_entry_reg_ = NULL;
+    m_slaves[i].slave_pdo_info_ = NULL;
+    m_slaves[i].slave_sync_info_ = NULL;
 }
 
 void EthercatNtwk::ReceiveAndProcess()

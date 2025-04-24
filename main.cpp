@@ -17,6 +17,9 @@
  * have different slaveswith different configurations, data for
  * PDO communications, and processing of the data during cyclic exchange.
  *
+ * One needs to inherit EthercatNtwk class and override MapPdos(),
+ * ReadFromSlaves() and WriteToSlaves() function according to the
+ * slave connection configuration of your fieldbus.
  *******************************************************************************/
 
 #define MAX_SAFE_STACK (8 * 1024) /* The maximum stack size which is
@@ -180,13 +183,13 @@ int main()
     // ------------------------------------------------------------- //
 
     // CKim - Scan for the connected slaves, check if the number of
-    // connected slaves is equal to the NUM_OF_SLAVES defined in ecat_globals.hpp.
+    // connected slaves is equal to the g_kNumberOfSlaves defined in EposNtwk.hpp.
     // In case of error, close master
     cout << "Getting connected slave informations...\n";
-    if (epos_ntwk->GetNumberOfConnectedSlaves())
+    if (epos_ntwk->CheckNumberOfConnectedSlaves())
     {
       epos_ntwk->ReleaseMaster();
-      for (int i = 0; i < NUM_OF_SLAVES; i++)   {
+      for (int i = 0; i < g_kNumberOfSlaves; i++)   {
         epos_ntwk->ResetSlave(i);
       }
       return -1;
@@ -194,7 +197,7 @@ int main()
 
     // CKim - Read and print out the connected slave info
     ec_slave_info_t info;
-    for (int i = 0; i < NUM_OF_SLAVES; i++)
+    for (int i = 0; i < g_kNumberOfSlaves; i++)
     {
       epos_ntwk->GetSlaveInformation(i, info);
       std::printf("\n");
@@ -209,7 +212,7 @@ int main()
 
     // CKim - Initialize the connected slaves
     cout << "Configuring  slaves...\n";
-    for (int i = 0; i < NUM_OF_SLAVES; i++)
+    for (int i = 0; i < g_kNumberOfSlaves; i++)
     {
       if (epos_ntwk->InitSlave(i))
       {
@@ -221,7 +224,7 @@ int main()
     // CKim - 3. Configure slaves
     // 3-1. Configure PDO mappings, and Distributed Clock Sync
     // 3-2. Setup parameters of the EPOS via SDO,
-    // This part will be application specific. Update MapDefaultPDO()
+    // This part will be application specific. Update MapPdos()
     // and implement and add additional parameter configurations.
     // ------------------------------------------------------------- //
     cout << "Mapping default PDOs...\n";
@@ -288,6 +291,13 @@ int main()
         }
 
         // -----------------------
+        // CKim - Write application time to master (using distributed clock feature)
+        // The master has to know the application's time when operating slaves with distributed clocks.
+        // This time is used as a common base for all the clocks in the network.
+        // The time is not incremented by the master itself, so this method has to be called cyclically
+        epos_ntwk->SetMasterApplicationTime(wakeup_time);
+
+        // -----------------------
         // CKim - Periodically check master/domain/slave state
         if (status_check_counter) {   status_check_counter--; }
         else
@@ -325,12 +335,8 @@ int main()
         epos_ntwk->WriteToSlaves();
 
         // -----------------------
-        // CKim - Synchronize clock. I need to study more about this
-
-        // CKim - Sync Master clock
-        epos_ntwk->SetMasterApplicationTime(wakeup_time);
-
-        // CKim - Synchronize reference clock of master and slave.
+        // CKim - Synchronize reference clock. (using distributed clock feature)
+        // The reference clock will by synchronized to the time passed in the sync_time parameter.
         if (sync_ref_counter) {  sync_ref_counter--;  }
         else
         {
@@ -338,6 +344,8 @@ int main()
           epos_ntwk->SyncMasterReferenceClock(ref_time);
           sync_ref_counter = 1;
         }
+        // CKim - Synchronize slave clock to the reference clock (using distributed clock feature)
+        // All slave clocks synchronized to the reference clock.
         epos_ntwk->SyncSlaveClock();
 
         // -----------------------

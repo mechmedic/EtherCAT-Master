@@ -75,14 +75,10 @@
 // Global variable declarations
 const uint32_t           g_kNsPerSec = 1000000000;     /// Nanoseconds per second.
 
-/// Number of connected servo drives.
-const uint32_t  g_kNumberOfServoDrivers = 7 ;
-#define NUM_OF_SLAVES     7  /// Total number of connected slave to the bus.
 #define FREQUENCY       1000  /// Ethercat PDO exchange loop frequency in Hz
 #define DISTRIBUTED_CLOCK 0   /// If you want to use distributed clock make it one, otherwise leave it zero.
 //#define MEASURE_TIMING    0    /// If you want to measure timings leave it as one, otherwise make it 0.
 
-/*****************************************************************************/
 #define PERIOD_NS       (g_kNsPerSec/FREQUENCY)  /// EtherCAT communication period in nanoseconds.
 #define PERIOD_US       (PERIOD_NS / 1000)
 #define PERIOD_MS       (PERIOD_US / 1000)

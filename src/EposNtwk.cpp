@@ -4,6 +4,10 @@ using namespace EthercatCommunication;
 
 EposNtwk::EposNtwk()
 {
+    // CKim - Specify the number of slaves
+    m_NumberOfSlaves = g_kNumberOfSlaves;
+    m_slaves.resize(g_kNumberOfSlaves);
+
     /* Master 0, Slave 0, "EPOS4"
      * Vendor ID:       0x000000fb
      * Product code:    0x61500000
@@ -70,7 +74,7 @@ int EposNtwk::MapPdos()
     // ecrt_slave_config_pdos (slave configuration, number of sync manager,
     // array of sync manager configuration):
     // EC_END tells to read until {oxff} in 'ec_sync_info_t' array
-    if (ecrt_slave_config_pdos(slaves_[i].slave_config_, EC_END, maxon_syncs))
+    if (ecrt_slave_config_pdos(m_slaves[i].slave_config_, EC_END, maxon_syncs))
     {
       std::cerr << "[EposNtwk] Slave " << i << " PDO configuration failed... \n";
       return -1;
@@ -83,44 +87,44 @@ int EposNtwk::MapPdos()
     // Returns offset (in bytes) of the PDO entry's process data from the beginning of the
     // domain data, which is used for read/write
 
-    this->slaves_[i].offset_.control_word =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_CONTROL_WORD, m_master_domain, NULL);
-    this->slaves_[i].offset_.target_vel =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_TARGET_VELOCITY, m_master_domain, NULL);
-    this->slaves_[i].offset_.target_pos =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_TARGET_POSITION, m_master_domain, NULL);
-      this->slaves_[i].offset_.target_tor =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_TARGET_TORQUE, m_master_domain, NULL);
-    this->slaves_[i].offset_.torque_offset =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_TORQUE_OFFSET, m_master_domain, NULL);
+    this->m_PdoOffset[i].control_word =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_CONTROL_WORD, m_master_domain, NULL);
+    this->m_PdoOffset[i].target_vel =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_TARGET_VELOCITY, m_master_domain, NULL);
+    this->m_PdoOffset[i].target_pos =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_TARGET_POSITION, m_master_domain, NULL);
+      this->m_PdoOffset[i].target_tor =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_TARGET_TORQUE, m_master_domain, NULL);
+    this->m_PdoOffset[i].torque_offset =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_TORQUE_OFFSET, m_master_domain, NULL);
 
 
-    this->slaves_[i].offset_.status_word =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_STATUS_WORD, m_master_domain, NULL);
-    this->slaves_[i].offset_.actual_pos =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_POSITION_ACTUAL_VAL, m_master_domain, NULL);
-    this->slaves_[i].offset_.actual_vel =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_VELOCITY_ACTUAL_VALUE, m_master_domain, NULL);
-    this->slaves_[i].offset_.actual_tor =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_TORQUE_ACTUAL_VALUE, m_master_domain, NULL);
-    this->slaves_[i].offset_.error_code =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_ERROR_CODE, m_master_domain, NULL);
-    this->slaves_[i].offset_.op_mode_display =
-        ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_OPERATION_MODE_DISPLAY, m_master_domain, NULL);
-    this->slaves_[i].offset_.digital_input =
-      ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_DIGITAL_INPUTS, m_master_domain, NULL);
-    this->slaves_[i].offset_.analog_input_1 =
-      ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_ANALOG_INPUT_PROPERTIES_1, m_master_domain, NULL);
-    this->slaves_[i].offset_.analog_input_2 =
-      ecrt_slave_config_reg_pdo_entry(this->slaves_[i].slave_config_, OD_ANALOG_INPUT_PROPERTIES_2, m_master_domain, NULL);
+    this->m_PdoOffset[i].status_word =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_STATUS_WORD, m_master_domain, NULL);
+    this->m_PdoOffset[i].actual_pos =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_POSITION_ACTUAL_VAL, m_master_domain, NULL);
+    this->m_PdoOffset[i].actual_vel =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_VELOCITY_ACTUAL_VALUE, m_master_domain, NULL);
+    this->m_PdoOffset[i].actual_tor =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_TORQUE_ACTUAL_VALUE, m_master_domain, NULL);
+    this->m_PdoOffset[i].error_code =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_ERROR_CODE, m_master_domain, NULL);
+    this->m_PdoOffset[i].op_mode_display =
+        ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_OPERATION_MODE_DISPLAY, m_master_domain, NULL);
+    this->m_PdoOffset[i].digital_input =
+      ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_DIGITAL_INPUTS, m_master_domain, NULL);
+    this->m_PdoOffset[i].analog_input_1 =
+      ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_ANALOG_INPUT_PROPERTIES_1, m_master_domain, NULL);
+    this->m_PdoOffset[i].analog_input_2 =
+      ecrt_slave_config_reg_pdo_entry(this->m_slaves[i].slave_config_, OD_ANALOG_INPUT_PROPERTIES_2, m_master_domain, NULL);
 
-    if ((slaves_[i].offset_.actual_pos < 0) || (slaves_[i].offset_.status_word < 0) ||
-        (slaves_[i].offset_.actual_vel < 0) || (slaves_[i].offset_.target_vel < 0) ||
-        (slaves_[i].offset_.target_pos < 0) || (slaves_[i].offset_.control_word < 0) ||
-        (slaves_[i].offset_.target_tor < 0) || (slaves_[i].offset_.actual_tor < 0) ||
-        (slaves_[i].offset_.torque_offset < 0) || (slaves_[i].offset_.error_code < 0) ||
-        (slaves_[i].offset_.op_mode_display < 0) || (slaves_[i].offset_.digital_input < 0) ||
-        (slaves_[i].offset_.analog_input_1 < 0) || (slaves_[i].offset_.analog_input_2 < 0) )
+    if ((m_PdoOffset[i].actual_pos < 0) || (m_PdoOffset[i].status_word < 0) ||
+        (m_PdoOffset[i].actual_vel < 0) || (m_PdoOffset[i].target_vel < 0) ||
+        (m_PdoOffset[i].target_pos < 0) || (m_PdoOffset[i].control_word < 0) ||
+        (m_PdoOffset[i].target_tor < 0) || (m_PdoOffset[i].actual_tor < 0) ||
+        (m_PdoOffset[i].torque_offset < 0) || (m_PdoOffset[i].error_code < 0) ||
+        (m_PdoOffset[i].op_mode_display < 0) || (m_PdoOffset[i].digital_input < 0) ||
+        (m_PdoOffset[i].analog_input_1 < 0) || (m_PdoOffset[i].analog_input_2 < 0) )
     {
       std::cerr << "[EposNtwk] Failed to configure  PDOs for motors.!";
       return -1;
@@ -140,10 +144,10 @@ void EposNtwk::ConfigDcSyncDefault()
   // https://infosys.beckhoff.com/english.php?content=../content/1033/ethercatsystem/2469122443.html&id=
   for (int i = 0; i < g_kNumberOfServoDrivers; i++)
   {
-    ecrt_slave_config_dc(slaves_[i].slave_config_, 0X0300, PERIOD_NS, slaves_[i].kSync0_shift_, 0, 0);
+    ecrt_slave_config_dc(m_slaves[i].slave_config_, 0X0300, PERIOD_NS, m_slaves[i].kSync0_shift_, 0, 0);
   }
 #if CUSTOM_SLAVE
-  ecrt_slave_config_dc(slaves_[FINAL_SLAVE].slave_config_, 0X0300, PERIOD_NS, 2000200000, 0, 0);
+  ecrt_slave_config_dc(m_slaves[FINAL_SLAVE].slave_config_, 0X0300, PERIOD_NS, 2000200000, 0, 0);
 #endif
 }
 
@@ -151,26 +155,24 @@ void EposNtwk::ReadFromSlaves()
 {
     for (int i = 0; i < g_kNumberOfServoDrivers; i++)
     {
-        m_PdoData[i].actual_pos =
-                EC_READ_S32(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.actual_pos);
-        m_PdoData[i].actual_vel =
-                EC_READ_S32(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.actual_vel);
-        m_PdoData[i].status_word =
-                EC_READ_U16(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.status_word);
-        m_PdoData[i].actual_tor =
-                EC_READ_S16(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.actual_tor);
-        m_PdoData[i].error_code =
-                EC_READ_U16(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.error_code);
-        m_PdoData[i].digital_input =
-                EC_READ_U32(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.digital_input);
-        m_PdoData[i].op_mode_display =
-                EC_READ_U8(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.op_mode_display);
-
-        // DY
-        m_PdoData[i].analog_input_1 =
-                EC_READ_S16(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.analog_input_1);
-        m_PdoData[i].analog_input_2 =
-                EC_READ_S16(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.analog_input_2);
+        m_EposData[i].actual_pos =
+                EC_READ_S32(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].actual_pos);
+        m_EposData[i].actual_vel =
+                EC_READ_S32(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].actual_vel);
+        m_EposData[i].status_word =
+                EC_READ_U16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].status_word);
+        m_EposData[i].actual_tor =
+                EC_READ_S16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].actual_tor);
+        m_EposData[i].error_code =
+                EC_READ_U16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].error_code);
+        m_EposData[i].digital_input =
+                EC_READ_U32(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].digital_input);
+        m_EposData[i].op_mode_display =
+                EC_READ_U8(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].op_mode_display);
+        m_EposData[i].analog_input_1 =
+                EC_READ_S16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].analog_input_1);
+        m_EposData[i].analog_input_2 =
+                EC_READ_S16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].analog_input_2);
     }
 }
 
@@ -178,9 +180,9 @@ void EposNtwk::WriteToSlaves()
 {
     for (int i = 0; i < g_kNumberOfServoDrivers; i++)
     {
-        EC_WRITE_U16(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.control_word,
-                     m_PdoData[i].control_word);
-        EC_WRITE_S32(slaves_[i].slave_pdo_domain_ + slaves_[i].offset_.target_vel, m_PdoData[i].target_vel);
+        EC_WRITE_U16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].control_word,
+                     m_EposData[i].control_word);
+        EC_WRITE_S32(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].target_vel, m_EposData[i].target_vel);
     }
 }
 
@@ -432,43 +434,43 @@ uint16_t EposNtwk::ClearFaultsViaSDO(int index)
 int EposNtwk::SetProfilePositionParameters(int position, ProfilePosParam& P)
 {
   // Operation mode to ProfilePositionMode for slave on that position.
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_OPERATION_MODE, kProfilePosition))
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_OPERATION_MODE, kProfilePosition))
   {
     std::cerr << "Set operation mode config error ! ";
     return -1;
   }
   // profile velocity
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_VELOCITY, P.profile_vel) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_VELOCITY, P.profile_vel) < 0)
   {
     std::cerr << "Set profile velocity config error ! ";
     return -1;
   }
   // max profile velocity
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_MAX_PROFILE_VELOCITY, P.max_profile_vel) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_MAX_PROFILE_VELOCITY, P.max_profile_vel) < 0)
   {
     std::cerr << "Set max profile velocity config error !";
     return -1;
   }
   // profile acceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_ACCELERATION, P.profile_acc) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_ACCELERATION, P.profile_acc) < 0)
   {
     std::cerr << "Set profile acceleration failed ! ";
     return -1;
   }
   // profile deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
   {
     std::cerr << "Set profile deceleration failed ! ";
     return -1;
   }
   // quick stop deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
   {
     std::cerr << "Set quick stop deceleration failed !";
     return -1;
   }
   // max following error
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_MAX_FOLLOWING_ERROR, P.max_fol_err) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_MAX_FOLLOWING_ERROR, P.max_fol_err) < 0)
   {
     std::cerr << "Set max following error failed ! ";
     return -1;
@@ -479,37 +481,37 @@ int EposNtwk::SetProfilePositionParameters(int position, ProfilePosParam& P)
 int EposNtwk::SetProfileVelocityParameters(int position, ProfileVelocityParam& P)
 {
   // Set operation mode to ProfileVelocityMode for slave on that position.
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_OPERATION_MODE, kProfileVelocity))
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_OPERATION_MODE, kProfileVelocity))
   {
     std::cerr << "Set operation mode config error ! ";
     return -1;
   }
   // motionProfileType
-  if (ecrt_slave_config_sdo16(slaves_[position].slave_config_, OD_MOTION_PROFILE_TYPE, P.motion_profile_type) < 0)
+  if (ecrt_slave_config_sdo16(m_slaves[position].slave_config_, OD_MOTION_PROFILE_TYPE, P.motion_profile_type) < 0)
   {
     std::cerr << "Set profile velocity config error ! ";
     return -1;
   }
   // max profile velocity
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_MAX_PROFILE_VELOCITY, P.max_profile_vel) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_MAX_PROFILE_VELOCITY, P.max_profile_vel) < 0)
   {
     std::cerr << "Set max profile  velocity config error ! ";
     return -1;
   }
   // profile acceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
   {
     std::cerr << "Set profile deceleration failed !";
     return -1;
   }
   // profile deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_ACCELERATION, P.profile_acc) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_ACCELERATION, P.profile_acc) < 0)
   {
     std::cerr << "Set profile acceleration failed ! ";
     return -1;
   }
   // quick stop deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
   {
     std::cerr << "Set quick stop deceleration failed ! ";
     return -1;
@@ -520,25 +522,25 @@ int EposNtwk::SetProfileVelocityParameters(int position, ProfileVelocityParam& P
 int EposNtwk::SetCyclicSyncPositionModeParameters(int position, CSPositionModeParam& P)
 {
   // Set operation mode to Cyclic Synchronous Position mode for motor in specified physical position w.r.t master.
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_OPERATION_MODE, kCSPosition))
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_OPERATION_MODE, kCSPosition))
   {
     std::cerr << "Set operation mode config error ! ";
     return -1;
   }
   // quick stop deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
   {
     std::cerr << "Set quick stop deceleration failed !";
     return -1;
   }
   // Following Error
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_MAX_FOLLOWING_ERROR, P.max_fol_err) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_MAX_FOLLOWING_ERROR, P.max_fol_err) < 0)
   {
     std::cerr << "Set max following error failed !";
     return -1;
   }
   // Interpolation time period is 1ms by default. Default unit is milliseconds (ms)
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_INTERPOLATION_TIME_PERIOD,
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_INTERPOLATION_TIME_PERIOD,
                              P.interpolation_time_period) < 0)
   {
     std::cerr << "Set interpolation time period failed !";
@@ -550,38 +552,38 @@ int EposNtwk::SetCyclicSyncPositionModeParameters(int position, CSPositionModePa
 int EposNtwk::SetCyclicSyncVelocityModeParameters(int position, CSVelocityModeParam& P)
 {
   // Set operation mode to Cyclic Synchronous Velocity mode for motor in specified physical position w.r.t master.
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_OPERATION_MODE, kCSVelocity))
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_OPERATION_MODE, kCSVelocity))
   {
     std::cerr << "Set operation mode config error ! ";
     return -1;
   }
   // // Velocity control parameter set, P, I gain only
-  // if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_VELOCITY_CONTROLLER_PGAIN,
+  // if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_VELOCITY_CONTROLLER_PGAIN,
   //                             P.velocity_controller_gain.Pgain) < 0)
   // {
   //   std::cerr << "Set velocity Pgain failed ! ");
   //   return -1;
   // }
-  // if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_VELOCITY_CONTROLLER_IGAIN,
+  // if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_VELOCITY_CONTROLLER_IGAIN,
   //                             P.velocity_controller_gain.Igain) < 0)
   // {
   //   std::cerr << "Set velocity Igain failed ! ");
   //   return -1;
   // }
   // profile deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
   {
     std::cerr << "Set profile deceleration failed ! ";
     return -1;
   }
   // quick stop deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
   {
     std::cerr << "Set quick stop deceleration failed !";
     return -1;
   }
   // Interpolation time period is 1ms by default.Default unit is milliseconds (ms)
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_INTERPOLATION_TIME_PERIOD,
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_INTERPOLATION_TIME_PERIOD,
                              P.interpolation_time_period) < 0)
   {
     std::cerr << "Set interpolation time period failed !";
@@ -593,30 +595,30 @@ int EposNtwk::SetCyclicSyncVelocityModeParameters(int position, CSVelocityModePa
 int EposNtwk::SetCyclicSyncTorqueModeParameters(int position, CSTorqueModeParam& P)
 {
   // Set operation mode to Cyclic Synchronous Velocity mode for motor in specified physical position w.r.t master.
-  if (ecrt_slave_config_sdo8(slaves_[position].slave_config_, OD_OPERATION_MODE, kCSTorque))
+  if (ecrt_slave_config_sdo8(m_slaves[position].slave_config_, OD_OPERATION_MODE, kCSTorque))
   {
     std::cerr << "Set operation mode config error ! ";
     return -1;
   }
   // profile deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_PROFILE_DECELERATION, P.profile_dec) < 0)
   {
     std::cerr << "Set profile deceleration failed ! ";
     return -1;
   }
   // quick stop deceleration
-  if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
+  if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_QUICK_STOP_DECELERATION, P.quick_stop_dec) < 0)
   {
     std::cerr << "Set quick stop deceleration failed !";
     return -1;
   }
 
-  // if (ecrt_slave_config_sdo16(slaves_[position].slave_config_, OD_MAX_TORQUE, P.max_torque) < 0)
+  // if (ecrt_slave_config_sdo16(m_slaves[position].slave_config_, OD_MAX_TORQUE, P.max_torque) < 0)
   // {
   //   std::cerr << "Set max torque failed !";
   //   return -1;
   // }
-  // if (ecrt_slave_config_sdo32(slaves_[position].slave_config_, OD_MAX_MOTOR_SPEED, P.max_profile_vel) < 0)
+  // if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_, OD_MAX_MOTOR_SPEED, P.max_profile_vel) < 0)
   // {
   //   std::cerr << "Set max motor speed failed !";
   //   return -1;
@@ -660,7 +662,7 @@ int EposNtwk::HomeMotor(int position, HomingParam& H)
   }
 
   // // Switch search speed
-  // if (ecrt_slave_config_sdo32(slaves_[position].slave_config_,OD_HOMING_SWITCH_SEARCH_SPEED, H.speed_for_switch_search) < 0)
+  // if (ecrt_slave_config_sdo32(m_slaves[position].slave_config_,OD_HOMING_SWITCH_SEARCH_SPEED, H.speed_for_switch_search) < 0)
   // {
   //   std::cerr << "Set homing switch search speed failed ! ");
   //   return -1;

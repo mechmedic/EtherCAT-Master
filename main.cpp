@@ -9,7 +9,8 @@
  * 2. Find connected slaves and initialize them
  * 3. Configure slaves (PDO mapping, distributed clock, parameters ...)
  * 4. Activate master and register domain data
- * 5. Run cyclic data exchange (receive and process, update data, queue and send)
+ * 5. Run cyclic data exchange (receive and process, update data,
+ *    queue and send, sychronize distributed clock if slave supports it)
  * 6. Stop cyclic data exchange, cleanup and close
  *
  * Steps 1,2,4 and 6 are common for applications. On the other hand, the
@@ -32,6 +33,7 @@
 
 #include <iostream>
 #include <memory>
+#include <math.h>
 
 using namespace std;
 using namespace EthercatCommunication;
@@ -112,57 +114,11 @@ void SetComThreadPriorities()
 
 }
 
-void cyclic_task()
-{
-    // CKim - receive process data
-    //    ecrt_master_receive(master);
-    //    ecrt_domain_process(domain1);
-
-    ////     // check process data state (optional)
-    ////     check_domain1_state();
-
-    //    // CKim - Read and write process data
-    //    if (counter) {
-    //        counter--;
-    //    }
-    //    else { // do this at 1 Hz
-    //        counter = 1000;
-
-    //        // check for master state (optional)
-    //        //check_master_state();
-    //        // check for slave configuration state(s) (optional)
-    //        //check_slave_config_states();
-
-
-    //        // CKim - Update new data to write
-    //        buzz = !buzz;
-    //        SegData++;
-
-    //        // CKim - Print received data
-    //        printf("Temperature : %.2f\t Pot : %d\t Switch : %d\t SegData : %d\n", TempData,PotData,SwitchData, SegData);
-    //    }
-
-    //    // read process data
-    //    TempData = EC_READ_REAL(domain1_pd + offsetTemperature);
-    //    PotData = EC_READ_U16(domain1_pd + offsetPot);
-    //    SwitchData = EC_READ_U8(domain1_pd + offsetSwitch);
-
-    //    // write process data
-    //    EC_WRITE_U8(domain1_pd + offsetAlarm, buzz ? 0xFF : 0x00);
-    //    //EC_WRITE_U8(domain1_pd + offsetAlarm, 127);
-    //    EC_WRITE_U8(domain1_pd + offsetSegment, SegData);
-
-    //    // CKim - send process data
-    //    ecrt_domain_queue(domain1);
-    //    ecrt_master_send(master);
-}
-
 int main()
 {
     // ------------------------------------------------------------- //
     // CKim - 1. Open and request master, create process data domain
     // ------------------------------------------------------------- //
-
     // CKim - Create unique pointer to EthercatMaster
     auto epos_ntwk = std::make_unique<EposNtwk>();
 
@@ -181,7 +137,6 @@ int main()
     // ------------------------------------------------------------- //
     // CKim - 2. Find connected slaves and initialize them
     // ------------------------------------------------------------- //
-
     // CKim - Scan for the connected slaves, check if the number of
     // connected slaves is equal to the g_kNumberOfSlaves defined in EposNtwk.hpp.
     // In case of error, close master
@@ -249,6 +204,12 @@ int main()
         }
     }
 
+    cout << "Enabling Drive via SDO...\n";
+    for (int i = 0; i < g_kNumberOfServoDrivers; i++)
+    {
+        epos_ntwk->EnableDrivesViaSDO(i);
+    }
+
     // ------------------------------------------------------------- //
     // CKim - 4. Activate master and register domain data.
     // This gives us pointer to process data in domain's memory
@@ -259,6 +220,8 @@ int main()
     cout << "Registering master domain...\n";
     if (epos_ntwk->RegisterDomain())  {   return -1;  }
 
+    // May need to wait for operational mode
+    //if (ecat_node_->WaitForOperationalMode())
 
     // ------------------------------------------------------------- //
     // CKim - 5. Run cyclic exchange
@@ -273,11 +236,13 @@ int main()
 
     // CKim - Start cyclic data exchange
     struct timespec wakeup_time, ref_time;
+    struct timespec curr_time, begin_time;
     int ret = 0;
     int status_check_counter = 1000;
     int sync_ref_counter = 0;
 
     printf("Starting RT task with dt=%u ns.\n", PERIOD_NS);
+    clock_gettime(CLOCK_TO_USE, &begin_time);
     while (1)
     {
         // -----------------------
@@ -295,30 +260,23 @@ int main()
         // The master has to know the application's time when operating slaves with distributed clocks.
         // This time is used as a common base for all the clocks in the network.
         // The time is not incremented by the master itself, so this method has to be called cyclically
-        epos_ntwk->SetMasterApplicationTime(wakeup_time);
+        if(DISTRIBUTED_CLOCK)   {
+            epos_ntwk->SetMasterApplicationTime(wakeup_time);   }
 
         // -----------------------
         // CKim - Periodically check master/domain/slave state
         if (status_check_counter) {   status_check_counter--; }
         else
         {
-          // Checking master/domain/slaves state every 1sec.
-          if (epos_ntwk->CheckMasterState() < 0)
+          ec_master_state_t ms;
+          if (epos_ntwk->CheckMasterState(ms) < 0)
           {
-//            RCLCPP_ERROR(rclcpp::get_logger(__PRETTY_FUNCTION__), "Connection error, check your physical connection.");
-//            al_state_ = ms.al_states;
-//            received_data_.emergency_switch_val = 0;
-//            emergency_status_ = 0;
-//            error_check++;
-//            if (error_check == 5)
-//              return;
+              // Do some error handling??
               break;
           }
           else
           {
             epos_ntwk->CheckMasterDomainState();
-//            error_check = 0;
-//            al_state_ = ms.al_states;
             status_check_counter = 1000;
           }
         }
@@ -331,34 +289,35 @@ int main()
         // CKim - Read the updated PDO data, do your own processing, and
         // prepare data to send by PDO
         epos_ntwk->ReadFromSlaves();
-        // Do something
+
+        // CKim - Generate sinusoidal motion for each joint for dynamic parameter identification
+        clock_gettime(CLOCK_TO_USE, &curr_time);
+        uint64_t dt = DIFF_NS(curr_time, begin_time);
+        dt /= 1000;   // to us.
+        float VelCmd = 1.0/3.0*3.141592*cos(2*3.141592/3000000.0*dt);
+        epos_ntwk->m_EposData[0].target_vel = VelCmd;
+
         epos_ntwk->WriteToSlaves();
 
         // -----------------------
-        // CKim - Synchronize reference clock. (using distributed clock feature)
+        // CKim - Synchronize reference clock and then synchronize slave clock
+        // to the reference clock. . (using distributed clock feature)
         // The reference clock will by synchronized to the time passed in the sync_time parameter.
-        if (sync_ref_counter) {  sync_ref_counter--;  }
-        else
-        {
-          clock_gettime(CLOCK_TO_USE, &ref_time);
-          epos_ntwk->SyncMasterReferenceClock(ref_time);
-          sync_ref_counter = 1;
-        }
-        // CKim - Synchronize slave clock to the reference clock (using distributed clock feature)
         // All slave clocks synchronized to the reference clock.
-        epos_ntwk->SyncSlaveClock();
+        if(DISTRIBUTED_CLOCK)   {
+            if (sync_ref_counter) {  sync_ref_counter--;  }
+            else
+            {
+              clock_gettime(CLOCK_TO_USE, &ref_time);
+              epos_ntwk->SyncMasterReferenceClock(ref_time);
+              sync_ref_counter = 1;
+            }
+            epos_ntwk->SyncSlaveClock();
+        }
 
         // -----------------------
         // CKim - Send updated data via PDO
         epos_ntwk->QueueAndSend();
-
-
-
-//        wakeup_time.tv_nsec += PERIOD_NS;
-//        while (wakeup_time.tv_nsec >= NSEC_PER_SEC) {
-//            wakeup_time.tv_nsec -= NSEC_PER_SEC;
-//            wakeup_time.tv_sec++;
-//        }
     }
 
 

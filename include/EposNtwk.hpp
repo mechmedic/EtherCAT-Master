@@ -38,9 +38,9 @@
 #include <epos_definitions.h>
 
 /// Total Number of connected slaves
-const uint32_t  g_kNumberOfSlaves = 7 ;
+const uint32_t  g_kNumberOfSlaves =  1;
 /// Number of EPOS slaves
-const uint32_t  g_kNumberOfServoDrivers = 7 ;
+const uint32_t  g_kNumberOfServoDrivers = 1;
 /******************************************************************************/
 namespace EthercatCommunication
 {
@@ -185,6 +185,14 @@ public:
    * @return 0 if successfull otherwise -1.
    */
   int16_t WriteControlWordViaSDO(int index, uint16_t control_word);
+
+  /**
+   * @brief Checks bits of statusWord and returns drive state
+   *
+   * @param int statusWord
+   * @return enum MotorState
+   */
+  int GetDriveState(const int& statusWord);
 
   /**
    * @brief Writes desired operational mode, to slave in specified index via SDO.

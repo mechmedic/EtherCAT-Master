@@ -105,7 +105,7 @@ public:
    * @return 0 if succesful, otherwise -1
    * \see ec_master_state_t structure.
    **/
-  int CheckMasterState();
+  int CheckMasterState(ec_master_state_t& ms);
   
   /**
    * @brief  Reads the state of a domain.

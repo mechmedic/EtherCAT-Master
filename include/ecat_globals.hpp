@@ -71,33 +71,24 @@
 /// Using Monotonic system-wide clock.  */
 #define CLOCK_TO_USE        CLOCK_MONOTONIC
 
+/// If you want to use distributed clock make it one, otherwise leave it zero.
+#define DISTRIBUTED_CLOCK 0
+
+/// If you want to measure timings leave it as one, otherwise make it 0.
+//#define MEASURE_TIMING    0
+
+
 /****************************************************************************/
 // Global variable declarations
 const uint32_t           g_kNsPerSec = 1000000000;     /// Nanoseconds per second.
 
 #define FREQUENCY       1000  /// Ethercat PDO exchange loop frequency in Hz
-#define DISTRIBUTED_CLOCK 0   /// If you want to use distributed clock make it one, otherwise leave it zero.
-//#define MEASURE_TIMING    0    /// If you want to measure timings leave it as one, otherwise make it 0.
 
 #define PERIOD_NS       (g_kNsPerSec/FREQUENCY)  /// EtherCAT communication period in nanoseconds.
 #define PERIOD_US       (PERIOD_NS / 1000)
 #define PERIOD_MS       (PERIOD_US / 1000)
 
 const struct timespec       g_cycle_time = {0, PERIOD_NS} ;       // cycletime settings in ns.
-//const struct timespec       g_half_cycle_time = {0, PERIOD_NS/2} ;       // cycletime settings in ns.
-
-
-//static volatile sig_atomic_t sig = 1;
-//extern struct timespec      g_sync_timer ;                       // timer for DC sync .
-//extern uint32_t             g_sync_ref_counter;                  // To sync every cycle.
-
-/// Select operation mode for motors, default: Profile Velocity.
-//static int8_t   g_kOperationMode = kProfileVelocity ;
-// static int8_t   g_kOperationMode = kCSVelocity ;  // Velocity mode - slave
-//static int8_t   g_kOperationMode = kCSTorque ;  // Torque mode - master
-// static int8_t   g_kOperationMode = kProfilePosition ;
-
-
 
 /**
  * @brief Add two timespec struct.
@@ -111,19 +102,40 @@ inline struct timespec timespec_add(struct timespec time1, struct timespec time2
 {
     struct timespec result;
 
-    if ((time1.tv_nsec + time2.tv_nsec) >= g_kNsPerSec)
+    result.tv_sec = time1.tv_sec + time2.tv_sec;
+    result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+    while (result.tv_nsec >= g_kNsPerSec)
     {
-        result.tv_sec = time1.tv_sec + time2.tv_sec + 1;
-        result.tv_nsec = time1.tv_nsec + time2.tv_nsec - g_kNsPerSec;
-    }
-    else
-    {
-        result.tv_sec = time1.tv_sec + time2.tv_sec;
-        result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+        result.tv_nsec -= g_kNsPerSec;
+        result.tv_sec++;
     }
 
     return result;
 }
 
+//    if ((time1.tv_nsec + time2.tv_nsec) >= g_kNsPerSec)
+//    {
+//        result.tv_sec = time1.tv_sec + time2.tv_sec + 1;
+//        result.tv_nsec = time1.tv_nsec + time2.tv_nsec - g_kNsPerSec;
+//    }
+//    else
+//    {
+//        result.tv_sec = time1.tv_sec + time2.tv_sec;
+//        result.tv_nsec = time1.tv_nsec + time2.tv_nsec;
+//    }
+
+//    return result;
 
 
+//const struct timespec       g_half_cycle_time = {0, PERIOD_NS/2} ;       // cycletime settings in ns.
+
+
+//static volatile sig_atomic_t sig = 1;
+//extern struct timespec      g_sync_timer ;                       // timer for DC sync .
+//extern uint32_t             g_sync_ref_counter;                  // To sync every cycle.
+
+/// Select operation mode for motors, default: Profile Velocity.
+//static int8_t   g_kOperationMode = kProfileVelocity ;
+// static int8_t   g_kOperationMode = kCSVelocity ;  // Velocity mode - slave
+//static int8_t   g_kOperationMode = kCSTorque ;  // Torque mode - master
+// static int8_t   g_kOperationMode = kProfilePosition ;

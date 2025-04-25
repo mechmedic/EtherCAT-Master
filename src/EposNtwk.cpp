@@ -217,6 +217,55 @@ int16_t EposNtwk::WriteControlWordViaSDO(int index, uint16_t control_word)
   return 0;
 }
 
+int EposNtwk::GetDriveState(const int& statusWord)
+{
+  int state = 0;
+
+  // bit 6 is 1
+  if (TEST_BIT(statusWord, 6))
+  {
+    state = kSwitchOnDisabled;
+    return state;
+  }
+
+  // bit 6 is 0 and bit 5 is 1
+  if (TEST_BIT(statusWord, 5))
+  {
+    if (TEST_BIT(statusWord, 2))
+    {
+      state = kOperationEnabled;
+      return state;
+    }
+    if (TEST_BIT(statusWord, 1))
+    {
+      state = kSwitchedOn;
+      return state;
+    }
+    if (TEST_BIT(statusWord, 0))
+    {
+      state = kReadyToSwitchOn;
+      return state;
+    }
+  }
+
+  // bit 6 is 0 and bit 5 is 0
+  if (TEST_BIT(statusWord, 3))
+  {
+    // For EPOS4, Fault or Fault Reaction Active,
+    // See P2-14 of the Firmware Manual
+    state = kFault;
+    return state;
+  }
+  else
+  {
+    // For EPOS4, Quick Stop Active or Not Switched on
+    // See P2-14 of the Firmware Manual
+    state = kQuickStop;
+    return state;
+  }
+  return state;
+}
+
 uint8_t EposNtwk::ReadOpModeViaSDO(int index)
 {
   SDO_data pack;                    uint8_t op_mode;
@@ -344,6 +393,59 @@ int16_t EposNtwk::WriteTargetTorqueViaSDO(int index, uint16_t target_tor)
     return -1;
   }
   return 0;
+}
+
+int16_t EposNtwk::EnableDrivesViaSDO(int index)
+{
+    int try_counter, motorState;
+    uint16_t statusWord, controlWord;
+
+    // CKim - Read status wor and parse it to get motor state
+    statusWord = ReadStatusWordViaSDO(index);
+    motorState = GetDriveState(statusWord);
+
+    try_counter = 0;
+    while (motorState != kOperationEnabled && (try_counter < 20))
+    {
+        statusWord = ReadStatusWordViaSDO(index);
+        motorState = GetDriveState(statusWord);
+
+        // if status is fault, reset fault state.
+        if (motorState == kFault)   {   controlWord = SM_FULL_RESET;    }
+
+        // If status is "Switch on disabled", change state to "Ready to switch on"
+        if (motorState == kSwitchOnDisabled)    {   controlWord = SM_GO_READY_TO_SWITCH_ON;     }
+
+        // If status is "Ready to switch on", change state to "Switched on"
+        if (motorState == kReadyToSwitchOn)     {   controlWord = SM_GO_SWITCH_ON;  }
+
+        // If status is "Switched on", change state to "Operation enabled"
+        if (motorState == kSwitchedOn)          {   controlWord = SM_GO_ENABLE;     }
+
+        WriteControlWordViaSDO(index, controlWord);
+        try_counter += 1;
+
+        if (try_counter == 20)
+        {
+          std::cerr << "Time out while enabling motor " << index << "...\n";
+          return -1;
+        }
+    }
+    return 0;
+}
+
+int16_t EposNtwk::DisableDrivesViaSDO(int index)
+{
+    SDO_data pack;
+    pack.index = OD_CONTROL_WORD;     pack.slave_position = index;
+    pack.sub_index = 0;               pack.data_sz = sizeof(uint16_t);
+    pack.data = SM_GO_SWITCH_ON;
+    if (SdoWrite(pack))
+    {
+       std::cerr << "Error while disabling drives\n ";
+      return -1;
+    }
+    return 0;
 }
 
 uint16_t EposNtwk::ReadErrorCodeViaSDO(int index)

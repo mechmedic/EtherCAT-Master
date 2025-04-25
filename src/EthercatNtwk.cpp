@@ -114,33 +114,34 @@ int EthercatNtwk::RestartEthercatMaster()
   }
 }
 
-int EthercatNtwk::CheckMasterState()
+int EthercatNtwk::CheckMasterState(ec_master_state_t& ms)
 {
-  ecrt_master_state(m_master, &m_master_state);
-  if (m_master_state.slaves_responding != m_master_state.slaves_responding)
+  ecrt_master_state(m_master, &ms);
+  if (ms.slaves_responding != m_master_state.slaves_responding)
   {
-    std::cout << "[EthercatNtwk] " << m_master_state.slaves_responding <<" slave(s).\n";
-    if (m_master_state.slaves_responding < 1)
+    std::cout << "[EthercatNtwk] " << ms.slaves_responding <<" slave(s).\n";
+    if (ms.slaves_responding < 1)
     {
       std::cout <<  "[EthercatNtwk] Connection error,no response from slaves.";
       return -1;
     }
   }
   
-  if (m_master_state.al_states != m_master_state.al_states)
+  if (ms.al_states != m_master_state.al_states)
   {
-    std::printf("[EthercatNtwk] AL states: 0x%02X.\n", m_master_state.al_states);
-    //std::cout << "[EthercatNtwk] AL states: 0x" << std::hex << std::setfill('0') <<std::setw(2) << m_master_state.al_states << "\n";
+    std::printf("[EthercatNtwk] AL states: 0x%02X.\n", ms.al_states);
   }
-  if (m_master_state.link_up != m_master_state.link_up)
+
+  if (ms.link_up != m_master_state.link_up)
   {
-    std::printf("[EthercatNtwk] Link is %s.\n", m_master_state.link_up ? "up" : "down");
+    std::printf("[EthercatNtwk] Link is %s.\n", ms.link_up ? "up" : "down");
     if (!m_master_state.link_up)
     {
       std::cerr << "[EthercatNtwk] Master state link down";
       return -1;
     }
   }
+  m_master_state = ms;
   return 0;
 }
 
@@ -276,7 +277,7 @@ void EthercatNtwk::SyncSlaveClock()
 
 int EthercatNtwk::WaitForOperationalMode()
 {
-  //ec_master_state_t ms;
+  ec_master_state_t ms;
   int try_counter=0;
   int check_state_count=0;
   int time_out = 20e3;
@@ -291,7 +292,7 @@ int EthercatNtwk::WaitForOperationalMode()
       usleep(PERIOD_US);
       if(!check_state_count)
       {
-        CheckMasterState();
+        CheckMasterState(ms);
         CheckMasterDomainState();
         CheckSlaveConfigurationState();
         check_state_count = PERIOD_US ;

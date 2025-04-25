@@ -180,6 +180,7 @@ void EposNtwk::WriteToSlaves()
 {
     for (int i = 0; i < g_kNumberOfServoDrivers; i++)
     {
+        m_EposData[i].control_word = SM_GO_ENABLE;
         EC_WRITE_U16(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].control_word,
                      m_EposData[i].control_word);
         EC_WRITE_S32(m_slaves[i].slave_pdo_domain_ + m_PdoOffset[i].target_vel, m_EposData[i].target_vel);

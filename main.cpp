@@ -162,7 +162,7 @@ int main()
       std::printf("Slave vendor_id     = 0x%08x\n ", info.vendor_id);
       std::printf("Slave product_code  = 0x%08x\n ", info.product_code);
       std::printf("Slave name          = %s\n ", info.name);
-      std::printf("--------------------EOF %d'th Slave Info ----------------\n ", i);
+      std::printf("--------------------EOF %d'th Slave Info ----------------\n", i);
     }
 
     // CKim - Initialize the connected slaves
@@ -287,16 +287,18 @@ int main()
 
         // -----------------------
         // CKim - Read the updated PDO data, do your own processing, and
-        // prepare data to send by PDO
+        // update data to send by PDO
         epos_ntwk->ReadFromSlaves();
 
         // CKim - Generate sinusoidal motion for each joint for dynamic parameter identification
         clock_gettime(CLOCK_TO_USE, &curr_time);
         uint64_t dt = DIFF_NS(curr_time, begin_time);
         dt /= 1000;   // to us.
-        float VelCmd = 1.0/3.0*3.141592*cos(2*3.141592/3000000.0*dt);
+        float VelCmd = 1000.0*cos(2*3.141592/3000000.0*dt); // Amplitude 1000 rpm
         epos_ntwk->m_EposData[0].target_vel = VelCmd;
+        // For more robustness, also need to check status word and update control word
 
+        // CKim - Update data to be sent by PDO
         epos_ntwk->WriteToSlaves();
 
         // -----------------------
